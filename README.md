@@ -4,6 +4,16 @@ Página que lê a planilha de vendas no Google Sheets e mostra, para cada vended
 
 **Regra de negócio** (idêntica à versão feita no Claude): entra na lista a linha cujo *Percentual da Venda*, arredondado, é de **50% ou mais** e cuja coluna *Pgto Comissão* está **vazia**. A tela mostra o total de comissões em aberto, a quantidade de clientes, o valor das vendas e a tabela de clientes com total no rodapé.
 
+## Abas
+
+**Comissões em aberto**: a tela original, sem alterações de regra.
+
+**Comissões pagas**: total pago por vendedor.
+- Escolha um vendedor (ou "Todos os vendedores") e marque uma ou mais opções do filtro, que são os valores distintos da coluna **PAGTO DE COMISSÃO** (também aceita os títulos `PGTO COMISSÃO`, `PAGTO COMISSÃO` e `PGTO DE COMISSÃO`).
+- **Comissão paga** = soma da **coluna I**. **Valor vendido** = soma da **coluna F**. Essas duas são lidas **pela posição** (F e I), não pelo título. Se você inserir ou mover colunas na planilha, a página avisa quando os títulos de F e I parecerem trocados.
+- Só entram linhas com a coluna de pagamento preenchida.
+- Gráficos de colunas "mês a mês" (comissão e valor vendido) e tabela com a variação sobre o mês anterior. O mês é reconhecido no texto do pagamento: `10/10/2026`, `2026-10-10`, `10/2026`, `OUT/2026`, `Outubro/2026`, `Pago em outubro de 2026`. Se algum valor selecionado não indicar um mês (por exemplo `Lote 2`), o comparativo passa a ser por valor do filtro, na ordem da planilha.
+
 ## Como funciona
 
 ```
@@ -26,7 +36,18 @@ Navegador (React)  ──►  /api/planilha (função da Vercel)  ──►  Goo
 
 Os dados são de comissões. **Defina `APP_PASSWORD`**; sem ela, qualquer pessoa com o link vê tudo.
 
-## 1. Configurar o Google (uma vez)
+## 1. Configurar o acesso à planilha (uma vez)
+
+### 1A. Planilha compartilhada por link (mais simples, sem Google Cloud)
+
+1. Na planilha, clique em **Compartilhar > Acesso geral > Qualquer pessoa com o link > Leitor**.
+2. `SHEET_ID`: trecho da URL entre `/d/` e `/edit`.
+3. `SHEET_GID` (se houver mais de uma aba): número depois de `gid=` na URL quando a aba certa está aberta.
+4. Pronto: não precisa de conta de serviço. Atenção: quem tiver o link da planilha também a vê direto no Google; a senha da página (`APP_PASSWORD`) só protege esta página.
+
+### 1B. Planilha privada (conta de serviço do Google)
+
+Use só se a planilha não puder ficar aberta por link.
 
 1. Acesse <https://console.cloud.google.com/> e crie um projeto (ou use um existente).
 2. Em **APIs e serviços > Biblioteca**, ative a **Google Sheets API**.
@@ -76,9 +97,10 @@ O `.gitignore` já impede o envio de `.env*` e `node_modules`. Confira com `git 
 | Nome | Valor |
 |---|---|
 | `SHEET_ID` | ID da planilha |
-| `SHEET_RANGE` | `Planilha1!A:K` (opcional) |
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | `client_email` do JSON |
-| `GOOGLE_PRIVATE_KEY` | `private_key` do JSON, inteira (com `-----BEGIN...` e `...END-----`) |
+| `SHEET_GID` | número da aba (modo link; opcional se houver só uma aba) |
+| `SHEET_RANGE` | `Planilha1!A:K` (só no modo conta de serviço; opcional) |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | só modo 1B: `client_email` do JSON |
+| `GOOGLE_PRIVATE_KEY` | só modo 1B: `private_key` do JSON, inteira |
 | `APP_PASSWORD` | senha de acesso à página |
 
 3. Clique em **Deploy**. O link público sai no formato `https://nome-do-projeto.vercel.app`.
@@ -86,8 +108,8 @@ O `.gitignore` já impede o envio de `.env*` e `node_modules`. Confira com `git 
 
 ## Problemas comuns
 
-- **"O servidor ainda não está configurado"**: falta alguma das três variáveis do Google na Vercel.
-- **"O Google Sheets recusou a leitura"**: a planilha não foi compartilhada com o `client_email`, ou o `SHEET_ID` está errado.
+- **"O servidor ainda não está configurado"**: falta a variável `SHEET_ID` na Vercel.
+- **"O Google Sheets recusou a leitura"**: a mensagem termina com o código do Google. `LINK_NAO_PUBLICO` = a planilha não está como "Qualquer pessoa com o link"; `PERMISSION_DENIED` = planilha não compartilhada com o `client_email`; `SERVICE_DISABLED` = ative a Google Sheets API no projeto; `404` = `SHEET_ID` errado.
 - **"A aba ou a faixa não foi encontrada"**: confira o nome da aba em `SHEET_RANGE`.
 - **"Colunas não encontradas"**: algum título do cabeçalho está diferente do esperado.
 - **Totais diferentes do esperado**: a leitura usa o valor **como aparece formatado** na planilha (por exemplo `50%`), que é o que a regra de arredondamento considera.
