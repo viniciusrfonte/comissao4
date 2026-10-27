@@ -12,7 +12,7 @@ Página que lê a planilha de vendas no Google Sheets e mostra, para cada vended
 - Escolha um vendedor (ou "Todos os vendedores") e marque uma ou mais opções do filtro, que são os valores distintos da coluna **PAGTO DE COMISSÃO** (também aceita os títulos `PGTO COMISSÃO`, `PAGTO COMISSÃO` e `PGTO DE COMISSÃO`).
 - **Comissão paga** = soma da **coluna I**. **Valor vendido** = soma da **coluna F**. Essas duas são lidas **pela posição** (F e I), não pelo título. Se você inserir ou mover colunas na planilha, a página avisa quando os títulos de F e I parecerem trocados.
 - Só entram linhas com a coluna de pagamento preenchida.
-- Gráficos de colunas "mês a mês" (comissão e valor vendido) e tabela com a variação sobre o mês anterior. O mês é reconhecido no texto do pagamento: `10/10/2026`, `2026-10-10`, `10/2026`, `OUT/2026`, `Outubro/2026`, `Pago em outubro de 2026`. Se algum valor selecionado não indicar um mês (por exemplo `Lote 2`), o comparativo passa a ser por valor do filtro, na ordem da planilha.
+- Gráficos de colunas "mês a mês" (comissão e valor vendido) e tabela com a variação sobre o mês anterior. O mês é reconhecido no texto do pagamento: `10/10/2026`, `2026-10-10`, `10/2026`, `OUT/2026`, `Outubro/2026`, `Pago em outubro de 2026`. **Ordem do filtro, dos gráficos e das tabelas:** os meses em ordem de calendário (Janeiro, Fevereiro, ... Dezembro; com ano, do mais antigo ao mais recente), depois outros textos, depois **N/A** e, por último, **Rescisão**. Se algum valor selecionado não indicar um mês (por exemplo `Lote 2`), o comparativo passa a ser por valor do filtro, na ordem da planilha.
 
 ## Como funciona
 

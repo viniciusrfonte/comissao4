@@ -23,7 +23,7 @@ export default function Grafico({ titulo, itens, serie }) {
           {itens.map((it, i) => {
             const h = (it.valor / max) * area;
             const cx = lado + passo * (i + 0.5);
-            const v = i > 0 ? variacao(it.valor, itens[i - 1].valor) : null;
+            const v = i > 0 && it.mes && itens[i - 1].mes ? variacao(it.valor, itens[i - 1].valor) : null;
             const seta = v == null ? "" : (v >= 0 ? "▲ " : "▼ ") + Math.abs(Math.round(v)) + "%";
             return (
               <g key={it.nome + i}>

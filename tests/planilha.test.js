@@ -89,11 +89,36 @@ test("opções em ordem cronológica; texto livre mantém a ordem da planilha", 
   assert.deepEqual(opcoesPagamento(pagasDoVendedor(livres, "ANA")), ["Lote 2", "Lote 1"]);
 });
 
+test("filtro: meses em ordem de calendário; N/A e Rescisão por último", () => {
+  const nomes = ["Rescisão", "Março", "N/A", "Dezembro", "Janeiro", "Outro", "Fevereiro", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro"];
+  const r = extrair([cabPos].concat(nomes.map((n, i) => L("ana", "C" + i, "R$ 1,00", "100%", "R$ 1,00", n))));
+  assert.deepEqual(opcoesPagamento(pagasDoVendedor(r, "ANA")), [
+    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+    "Outro", "N/A", "Rescisão",
+  ]);
+  const so = extrair([cabPos, L("ana", "A", "R$ 1,00", "100%", "R$ 1,00", "rescisao"), L("ana", "B", "R$ 1,00", "100%", "R$ 1,00", "NA")]);
+  assert.deepEqual(opcoesPagamento(pagasDoVendedor(so, "ANA")), ["NA", "rescisao"]);
+});
+
+test("resumo mistura meses, N/A e Rescisão na mesma ordem", () => {
+  const r = extrair([cabPos,
+    L("ana", "A", "R$ 100,00", "100%", "R$ 10,00", "Rescisão"),
+    L("ana", "B", "R$ 200,00", "100%", "R$ 20,00", "Fevereiro"),
+    L("ana", "C", "R$ 300,00", "100%", "R$ 30,00", "N/A"),
+    L("ana", "D", "R$ 400,00", "100%", "R$ 40,00", "Janeiro")]);
+  const res = resumoPagas(r, "ANA", ["Rescisão", "N/A", "Fevereiro", "Janeiro"]);
+  assert.deepEqual(res.meses.map((m) => m.nome), ["Janeiro", "Fevereiro", "N/A", "Rescisão"]);
+  assert.deepEqual(res.meses.map((m) => m.mes), [true, true, false, false]);
+  assert.equal(res.temMes, true);
+  assert.equal(res.porMes, false);
+  assert.equal(res.total, 100);
+});
+
 test("totais pagos somam F (venda) e I (comissão) por vendedor, seleção e mês", () => {
   const ana = resumoPagas(pagas, "ANA", ["Setembro/2026", "Outubro/2026"]);
   assert.equal(ana.total, 600);
   assert.equal(ana.vendas, 6000);
-  assert.deepEqual(ana.meses.map((m) => [m.nome, m.comissao, m.vendas, m.qtd]), [["set/2026", 500, 5000, 2], ["out/2026", 100, 1000, 1]]);
+  assert.deepEqual(ana.meses.map((m) => [m.nome, m.comissao, m.vendas, m.qtd]), [["Setembro/2026", 500, 5000, 2], ["Outubro/2026", 100, 1000, 1]]);
   assert.equal(resumoPagas(pagas, "ANA", ["Setembro/2026"]).total, 500);
   const todos = resumoPagas(pagas, TODOS, ["Setembro/2026", "Outubro/2026", "10/10/2026"]);
   assert.equal(todos.total, 1000);

@@ -89,17 +89,17 @@ export default function AbaPagas({ rows, cab, carregado, carregando, onAtualizar
 
       {res.meses.length > 0 && (
         <>
-          <h2 className="sec">{res.porMes ? "Comparativo mês a mês" : "Comparativo por pagamento"}</h2>
+          <h2 className="sec">{res.temMes ? "Comparativo mês a mês" : "Comparativo por pagamento"}</h2>
           <div className="grid2">
-            <Grafico titulo="Comissão paga" serie="serie-a" itens={res.meses.map((m) => ({ nome: m.nome, valor: m.comissao }))} />
-            <Grafico titulo="Valor vendido" serie="serie-b" itens={res.meses.map((m) => ({ nome: m.nome, valor: m.vendas }))} />
+            <Grafico titulo="Comissão paga" serie="serie-a" itens={res.meses.map((m) => ({ nome: m.nome, valor: m.comissao, mes: m.mes }))} />
+            <Grafico titulo="Valor vendido" serie="serie-b" itens={res.meses.map((m) => ({ nome: m.nome, valor: m.vendas, mes: m.mes }))} />
           </div>
 
           <div className="tablewrap">
             <table>
               <thead>
                 <tr>
-                  <th>{res.porMes ? "Mês" : "Pagamento"}</th>
+                  <th>{res.porMes ? "Mês" : res.temMes ? "Mês / pagamento" : "Pagamento"}</th>
                   <th className="num">Vendas pagas</th>
                   <th className="num">Valor vendido</th>
                   <th className="num">Comissão</th>
@@ -114,8 +114,8 @@ export default function AbaPagas({ rows, cab, carregado, carregando, onAtualizar
                     <td className="num">{m.qtd}</td>
                     <td className="num">{brl.format(m.vendas)}</td>
                     <td className="num">{brl.format(m.comissao)}</td>
-                    <td className="num">{i > 0 ? <Variacao v={variacao(m.comissao, res.meses[i - 1].comissao)} /> : <span className="muted">-</span>}</td>
-                    <td className="num">{i > 0 ? <Variacao v={variacao(m.vendas, res.meses[i - 1].vendas)} /> : <span className="muted">-</span>}</td>
+                    <td className="num">{i > 0 && m.mes && res.meses[i - 1].mes ? <Variacao v={variacao(m.comissao, res.meses[i - 1].comissao)} /> : <span className="muted">-</span>}</td>
+                    <td className="num">{i > 0 && m.mes && res.meses[i - 1].mes ? <Variacao v={variacao(m.vendas, res.meses[i - 1].vendas)} /> : <span className="muted">-</span>}</td>
                   </tr>
                 ))}
               </tbody>

@@ -136,30 +136,40 @@ export function chaveMes(rotulo) {
   return mes >= 1 && mes <= 12 ? { ano: ano, mes: mes } : null;
 }
 
-function nomeMes(k) { return MESES_ABREV[k.mes - 1] + (k.ano ? "/" + k.ano : ""); }
+var MESES_NOME = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+function nomeMes(k) { return MESES_NOME[k.mes - 1] + (k.ano ? "/" + k.ano : ""); }
+
+// Posição de um valor do filtro: meses em ordem de calendário (Janeiro, Fevereiro...),
+// depois outros textos, depois "N/A" e, por último, "Rescisão".
+function posicao(rotulo) {
+  var k = chaveMes(rotulo);
+  if (k) return { grupo: 0, ord: k.ano * 100 + k.mes };
+  var n = norm(rotulo);
+  if (/^RESCIS/.test(n)) return { grupo: 3, ord: 0 };
+  if (/^N\s*[\/.\-]?\s*A\.?$/.test(n)) return { grupo: 2, ord: 0 };
+  return { grupo: 1, ord: 0 };
+}
+
+function ordenarPorPosicao(lista) {
+  return lista
+    .map(function (x, i) { return { x: x, i: i, p: posicao(x) }; })
+    .sort(function (a, b) { return a.p.grupo - b.p.grupo || a.p.ord - b.p.ord || a.i - b.i; })
+    .map(function (o) { return o.x; });
+}
 
 // Linhas com comissão paga (coluna de pagamento preenchida) do vendedor escolhido (ou de todos).
 export function pagasDoVendedor(rows, vendedor) {
   return rows.filter(function (r) { return r[8] !== "" && (vendedor === TODOS || r[0] === vendedor); });
 }
 
-// Opções distintas de Pgto Comissão, em ordem cronológica quando todas indicam um mês;
-// caso contrário, na ordem em que aparecem na planilha.
+// Opções distintas da coluna de pagamento, na ordem de posicao().
 export function opcoesPagamento(pagas) {
   var vistos = {}, lista = [];
   pagas.forEach(function (r) { if (!vistos[r[8]]) { vistos[r[8]] = 1; lista.push(r[8]); } });
-  var chaves = lista.map(chaveMes);
-  if (lista.length && chaves.every(Boolean)) {
-    var idx = lista.map(function (_, i) { return i; });
-    idx.sort(function (a, b) {
-      return (chaves[a].ano * 100 + chaves[a].mes) - (chaves[b].ano * 100 + chaves[b].mes) || a - b;
-    });
-    return idx.map(function (i) { return lista[i]; });
-  }
-  return lista;
+  return ordenarPorPosicao(lista);
 }
 
-// Totais, linhas e agrupamento mês a mês das comissões pagas nas opções selecionadas.
+// Totais, linhas e agrupamento (meses em ordem de calendário; N/A e Rescisão por último).
 export function resumoPagas(rows, vendedor, selecionadas) {
   var sel = {};
   selecionadas.forEach(function (x) { sel[x] = 1; });
@@ -167,25 +177,21 @@ export function resumoPagas(rows, vendedor, selecionadas) {
   var total = 0, vendas = 0;
   lista.forEach(function (r) { total += r[10]; vendas += r[9]; });
 
-  var chaves = selecionadas.map(chaveMes);
-  var porMes = selecionadas.length > 0 && chaves.every(Boolean);
   var grupos = {}, ordem = [];
   lista.forEach(function (r) {
-    var k = porMes ? chaveMes(r[8]) : null;
-    var id = porMes ? k.ano + "-" + k.mes : r[8];
+    var k = chaveMes(r[8]);
+    var id = k ? "m" + k.ano + "-" + k.mes : "t" + r[8];
     if (!grupos[id]) {
-      grupos[id] = { id: id, nome: porMes ? nomeMes(k) : r[8], ord: porMes ? k.ano * 100 + k.mes : 0, comissao: 0, vendas: 0, qtd: 0 };
+      grupos[id] = { id: id, nome: k ? nomeMes(k) : r[8], rotulo: r[8], mes: !!k, comissao: 0, vendas: 0, qtd: 0, i: ordem.length };
       ordem.push(grupos[id]);
     }
     grupos[id].comissao += r[10]; grupos[id].vendas += r[9]; grupos[id].qtd += 1;
   });
-  if (porMes) ordem.sort(function (a, b) { return a.ord - b.ord; });
-  else {
-    var pos = {};
-    selecionadas.forEach(function (x, i) { pos[x] = i; });
-    ordem.sort(function (a, b) { return pos[a.id] - pos[b.id]; });
-  }
-  return { lista: lista, total: total, vendas: vendas, meses: ordem, porMes: porMes, vendedores: porVendedor(lista) };
+  ordem.forEach(function (g) { g.p = posicao(g.rotulo); });
+  ordem.sort(function (a, b) { return a.p.grupo - b.p.grupo || a.p.ord - b.p.ord || a.i - b.i; });
+  var porMes = ordem.length > 0 && ordem.every(function (g) { return g.mes; });
+  var temMes = ordem.some(function (g) { return g.mes; });
+  return { lista: lista, total: total, vendas: vendas, meses: ordem, porMes: porMes, temMes: temMes, vendedores: porVendedor(lista) };
 }
 
 // Totais por vendedor (maior comissão primeiro).
