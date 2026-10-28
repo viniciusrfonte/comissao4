@@ -1,6 +1,7 @@
 // Regras de negócio da versão original (copiadas sem alteração de comportamento).
 
 export const COL_VENDA = 5;     // coluna F (Valor venda), usada na aba "Comissões pagas"
+export const COL_RECEBIDO = 6;  // coluna G (valor recebido), usada nos totais da Rhino
 export const COL_COMISSAO = 8;  // coluna I (Comissão), usada na aba "Comissões pagas"
 export const LIMITE = 50; // % mínimo do "Percentual da Venda" (arredondado) para a comissão entrar na lista
 
@@ -48,7 +49,7 @@ export function parseCSV(text) {
 
 // Localiza as colunas pelo nome do cabeçalho.
 // Cada registro: [vendedor, cliente, código, %comissão, venda, %venda, comissão, pago(0/1), texto do pagamento,
-// valor da coluna F, valor da coluna I]. As colunas F e I da aba "Comissões pagas" são lidas por posição.
+// valor da coluna F, valor da coluna I, valor da coluna G]. As colunas F, G e I são lidas por posição.
 export function extrair(matriz) {
   var h = -1, idx = {}, i, j;
   for (i = 0; i < matriz.length && h < 0; i++) {
@@ -80,28 +81,22 @@ export function extrair(matriz) {
       parsePct(r[idx["PERCENTUAL DA VENDA"]]), parseMoney(r[idx["COMISSAO"]]),
       txt(r, "PGTO COMISSAO") === "" ? 0 : 1,
       pgtoTxt(r),
-      parseMoney(r[COL_VENDA]), parseMoney(r[COL_COMISSAO])
+      parseMoney(r[COL_VENDA]), parseMoney(r[COL_COMISSAO]),
+      parseMoney(r[COL_RECEBIDO])
     ]);
   }
   out.cab = { F: String(matriz[h][COL_VENDA] == null ? "" : matriz[h][COL_VENDA]).trim(), I: String(matriz[h][COL_COMISSAO] == null ? "" : matriz[h][COL_COMISSAO]).trim(), pgto: String(matriz[h][idxPgto] == null ? "" : matriz[h][idxPgto]).trim() };
-  // Células de resumo da planilha: B1 = Total das Vendas 2026, B2 = Valor recebido (null se vazias).
-  function celulaValor(linha, col) { var v = (matriz[linha] || [])[col]; return v == null || String(v).trim() === "" ? null : parseMoney(v); }
-  // Células de resumo no topo da planilha: B1 e B2 (com o rótulo que estiver na coluna A da mesma linha).
-  function cel(l, c) { if (l >= h) return ""; var r = matriz[l]; var v = r && r[c]; return v == null ? "" : String(v).trim(); }
-  out.cab.B1 = { rotulo: cel(0, 0), texto: cel(0, 1) };
-  out.cab.B2 = { rotulo: cel(1, 0), texto: cel(1, 1) };
+  out.cab.G = String(matriz[h][COL_RECEBIDO] == null ? "" : matriz[h][COL_RECEBIDO]).trim();
   return out;
 }
 
-// Valor de uma célula de resumo (B1/B2) como moeda; "—" se estiver vazia; o próprio texto se não houver número.
-export function formatarCelula(texto) {
-  var t = String(texto == null ? "" : texto).trim();
-  if (!t) return "—";
-  if (!/\d/.test(t)) return t;
-  var limpo = t.replace(/R\$/gi, "").replace(/\s/g, "");
-  if (/^-?\d{1,3}(\.\d{3})+$/.test(limpo)) limpo = limpo.replace(/\./g, ""); // 1.234.567 sem centavos
-  return brl.format(parseMoney(limpo));
+// Totais da Rhino na aba Planilha1: soma da coluna F (vendas) e da coluna G (recebido) de todas as linhas de dados.
+export function totaisRhino(rows) {
+  var vendas = 0, recebido = 0;
+  rows.forEach(function (r) { vendas += r[9] || 0; recebido += r[11] || 0; });
+  return { vendas: vendas, recebido: recebido };
 }
+
 export function fmtPct(n) { return (Math.round(n * 100) / 100).toLocaleString("pt-BR") + "%"; }
 
 export function fmtData(iso) {

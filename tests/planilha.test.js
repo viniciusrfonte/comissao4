@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { extrair, filtrar, listarVendedores, parseMoney, parsePct, norm, fmtPct, chaveMes, opcoesPagamento, pagasDoVendedor, resumoPagas, TODOS, variacao, formatarCelula } from "../src/lib/planilha.js";
+import { extrair, filtrar, listarVendedores, parseMoney, parsePct, norm, fmtPct, chaveMes, opcoesPagamento, pagasDoVendedor, resumoPagas, TODOS, variacao, totaisRhino } from "../src/lib/planilha.js";
 
 const cab = ["Vendedor", "Nome do Cliente", "Código do Cliente", "% Comissão", "Valor Venda", "Percentual da Venda", "Comissão", "Pgto Comissão"];
 const matriz = [
@@ -134,19 +134,22 @@ test("sem coluna 'de': aceita PGTO COMISSÃO como filtro", () => {
   assert.equal(r[0][8], "Set/2026");
 });
 
-test("células B1 e B2 do topo da planilha", () => {
-  const r = extrair([["Valor Recebido", "R$ 1.234.567,89"], ["Recebido", "R$ 98.000,00"], cabPos, L("ana", "A", "R$ 10,00", "100%", "R$ 1,00", "Janeiro")]);
-  assert.deepEqual(r.cab.B1, { rotulo: "Valor Recebido", texto: "R$ 1.234.567,89" });
-  assert.deepEqual(r.cab.B2, { rotulo: "Recebido", texto: "R$ 98.000,00" });
-  assert.equal(formatarCelula(r.cab.B1.texto).replace(/\s/g, " "), "R$ 1.234.567,89");
-  assert.equal(formatarCelula("R$ 2.500.000").replace(/\s/g, " "), "R$ 2.500.000,00");
-  assert.equal(formatarCelula(1500).replace(/\s/g, " "), "R$ 1.500,00");
-  assert.equal(formatarCelula(""), "—");
-  assert.equal(formatarCelula("n/d"), "n/d");
-});
 
-test("B1 e B2 ficam vazias quando o cabeçalho está nas primeiras linhas", () => {
-  const r = extrair([cabPos, L("ana", "A", "R$ 10,00", "100%", "R$ 1,00", "Janeiro")]);
-  assert.deepEqual([r.cab.B1.texto, r.cab.B2.texto], ["", ""]);
-  assert.equal(formatarCelula(r.cab.B1.texto), "—");
+
+test("totais da Rhino: soma das colunas F (vendas) e G (recebido) de todas as linhas de dados", () => {
+  const cabFG = ["Vendedor", "Nome do Cliente", "Código do Cliente", "% Comissão", "Percentual da Venda", "Valor Venda", "Valor Recebido", "Pgto Comissão", "Comissão", "x", "y"];
+  const linha = (v, c, f, g, pg) => [v, c, "1", "5%", "100%", f, g, pg, "R$ 1,00", "", ""];
+  const r = extrair([
+    ["Resumo qualquer"],
+    cabFG,
+    linha("ana", "A", "R$ 1.000,00", "R$ 400,00", "Janeiro"),
+    linha("bruno", "B", "R$ 2.500,50", "R$ 1.000,00", ""),
+    linha("bruno", "C", 3000, 500, "N/A"),
+    ["", "", "", "", "", "R$ 6.500,50", "R$ 1.900,00", "", "", "", ""],   // linha de total da planilha: sem vendedor, não conta
+  ]);
+  assert.equal(r.cab.G, "Valor Recebido");
+  const t = totaisRhino(r);
+  assert.equal(t.vendas, 6500.5);
+  assert.equal(t.recebido, 1900);
+  assert.deepEqual(totaisRhino([]), { vendas: 0, recebido: 0 });
 });

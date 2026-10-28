@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { TODOS, brl, formatarCelula, listarVendedores, opcoesPagamento, pagasDoVendedor, resumoPagas, variacao } from "../lib/planilha.js";
+import { TODOS, brl, listarVendedores, opcoesPagamento, pagasDoVendedor, resumoPagas, totaisRhino, variacao } from "../lib/planilha.js";
 import Barra from "./Barra.jsx";
 import Grafico from "./Grafico.jsx";
 
@@ -19,6 +19,7 @@ export default function AbaPagas({ rows, cab, carregado, carregando, onAtualizar
   const vendedorAtual = vendedor === TODOS || vendedores.indexOf(vendedor) >= 0 ? vendedor : TODOS;
   const opcoes = useMemo(() => opcoesPagamento(pagasDoVendedor(rows, vendedorAtual)), [rows, vendedorAtual]);
   const marcadas = sel === null ? opcoes : opcoes.filter((o) => sel.indexOf(o) >= 0);
+  const rhino = useMemo(() => totaisRhino(rows), [rows]);
   const res = useMemo(() => resumoPagas(rows, vendedorAtual, marcadas), [rows, vendedorAtual, marcadas]);
 
   function alternar(o) {
@@ -85,13 +86,13 @@ export default function AbaPagas({ rows, cab, carregado, carregando, onAtualizar
         <div className="main"><div className="k">{"Comissão paga (coluna I)"}</div><div className="v" id="pg-total">{brl.format(res.total)}</div></div>
         <div><div className="k">Valor vendido (Vendas com 50% ou mais)</div><div className="v" id="pg-vendas">{brl.format(res.vendas)}</div></div>
         <div><div className="k">Vendas pagas</div><div className="v" id="pg-qtd">{String(res.lista.length)}</div></div>
-        <div>
-          <div className="k">Total das vendas 2026</div>
-          <div className="v" id="pg-total-2026">{formatarCelula(cab && cab.B1 && cab.B1.texto)}</div>
+        <div title={"Soma da coluna F" + (nomeF ? " (" + nomeF + ")" : "") + " da aba Planilha1"}>
+          <div className="k">Total vendas 2026 Rhino</div>
+          <div className="v" id="pg-total-2026">{brl.format(rhino.vendas)}</div>
         </div>
-        <div>
-          <div className="k">Valor recebido</div>
-          <div className="v" id="pg-recebido">{formatarCelula(cab && cab.B2 && cab.B2.texto)}</div>
+        <div title={"Soma da coluna G" + (cab && cab.G ? " (" + cab.G + ")" : "") + " da aba Planilha1"}>
+          <div className="k">Total recebido Rhino</div>
+          <div className="v" id="pg-recebido">{brl.format(rhino.recebido)}</div>
         </div>
       </section>
 
