@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { extrair, filtrar, listarVendedores, parseMoney, parsePct, norm, fmtPct, chaveMes, opcoesPagamento, pagasDoVendedor, resumoPagas, TODOS, variacao } from "../src/lib/planilha.js";
+import { extrair, filtrar, listarVendedores, parseMoney, parsePct, norm, fmtPct, chaveMes, opcoesPagamento, pagasDoVendedor, resumoPagas, TODOS, variacao, formatarCelula } from "../src/lib/planilha.js";
 
 const cab = ["Vendedor", "Nome do Cliente", "Código do Cliente", "% Comissão", "Valor Venda", "Percentual da Venda", "Comissão", "Pgto Comissão"];
 const matriz = [
@@ -132,4 +132,21 @@ test("sem coluna 'de': aceita PGTO COMISSÃO como filtro", () => {
   const c = cabPos.map((x) => (x === "Pagto de Comissão" ? "Pgto Comissão" : x));
   const r = extrair([c, L("ana", "A", "R$ 10,00", "100%", "R$ 1,00", "Set/2026")]);
   assert.equal(r[0][8], "Set/2026");
+});
+
+test("células B1 e B2 do topo da planilha", () => {
+  const r = extrair([["Valor Recebido", "R$ 1.234.567,89"], ["Recebido", "R$ 98.000,00"], cabPos, L("ana", "A", "R$ 10,00", "100%", "R$ 1,00", "Janeiro")]);
+  assert.deepEqual(r.cab.B1, { rotulo: "Valor Recebido", texto: "R$ 1.234.567,89" });
+  assert.deepEqual(r.cab.B2, { rotulo: "Recebido", texto: "R$ 98.000,00" });
+  assert.equal(formatarCelula(r.cab.B1.texto).replace(/\s/g, " "), "R$ 1.234.567,89");
+  assert.equal(formatarCelula("R$ 2.500.000").replace(/\s/g, " "), "R$ 2.500.000,00");
+  assert.equal(formatarCelula(1500).replace(/\s/g, " "), "R$ 1.500,00");
+  assert.equal(formatarCelula(""), "—");
+  assert.equal(formatarCelula("n/d"), "n/d");
+});
+
+test("B1 e B2 ficam vazias quando o cabeçalho está nas primeiras linhas", () => {
+  const r = extrair([cabPos, L("ana", "A", "R$ 10,00", "100%", "R$ 1,00", "Janeiro")]);
+  assert.deepEqual([r.cab.B1.texto, r.cab.B2.texto], ["", ""]);
+  assert.equal(formatarCelula(r.cab.B1.texto), "—");
 });

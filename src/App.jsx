@@ -4,7 +4,7 @@ import { buscarPlanilha, gravarSenha, lerSenha, msgErro } from "./lib/api.js";
 import AbaAbertas from "./components/AbaAbertas.jsx";
 import AbaPagas from "./components/AbaPagas.jsx";
 
-const STORE = "comissoes-planilha-v3";
+const STORE = "comissoes-planilha-v4";
 
 function lerCache() {
   try {
@@ -17,7 +17,7 @@ function gravarCache(rows, origem, cab) {
   try { localStorage.setItem(STORE, JSON.stringify({ rows: rows, origem: origem, cab: cab })); } catch (e) {}
 }
 function limparCache() {
-  try { localStorage.removeItem(STORE); localStorage.removeItem("comissoes-planilha-v2"); } catch (e) {}
+  try { localStorage.removeItem(STORE); localStorage.removeItem("comissoes-planilha-v3"); localStorage.removeItem("comissoes-planilha-v2"); } catch (e) {}
 }
 
 function Topo() {

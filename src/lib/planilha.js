@@ -84,9 +84,24 @@ export function extrair(matriz) {
     ]);
   }
   out.cab = { F: String(matriz[h][COL_VENDA] == null ? "" : matriz[h][COL_VENDA]).trim(), I: String(matriz[h][COL_COMISSAO] == null ? "" : matriz[h][COL_COMISSAO]).trim(), pgto: String(matriz[h][idxPgto] == null ? "" : matriz[h][idxPgto]).trim() };
+  // Células de resumo da planilha: B1 = Total das Vendas 2026, B2 = Valor recebido (null se vazias).
+  function celulaValor(linha, col) { var v = (matriz[linha] || [])[col]; return v == null || String(v).trim() === "" ? null : parseMoney(v); }
+  // Células de resumo no topo da planilha: B1 e B2 (com o rótulo que estiver na coluna A da mesma linha).
+  function cel(l, c) { if (l >= h) return ""; var r = matriz[l]; var v = r && r[c]; return v == null ? "" : String(v).trim(); }
+  out.cab.B1 = { rotulo: cel(0, 0), texto: cel(0, 1) };
+  out.cab.B2 = { rotulo: cel(1, 0), texto: cel(1, 1) };
   return out;
 }
 
+// Valor de uma célula de resumo (B1/B2) como moeda; "—" se estiver vazia; o próprio texto se não houver número.
+export function formatarCelula(texto) {
+  var t = String(texto == null ? "" : texto).trim();
+  if (!t) return "—";
+  if (!/\d/.test(t)) return t;
+  var limpo = t.replace(/R\$/gi, "").replace(/\s/g, "");
+  if (/^-?\d{1,3}(\.\d{3})+$/.test(limpo)) limpo = limpo.replace(/\./g, ""); // 1.234.567 sem centavos
+  return brl.format(parseMoney(limpo));
+}
 export function fmtPct(n) { return (Math.round(n * 100) / 100).toLocaleString("pt-BR") + "%"; }
 
 export function fmtData(iso) {

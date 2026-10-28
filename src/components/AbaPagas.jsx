@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { TODOS, brl, listarVendedores, opcoesPagamento, pagasDoVendedor, resumoPagas, variacao } from "../lib/planilha.js";
+import { TODOS, brl, formatarCelula, listarVendedores, opcoesPagamento, pagasDoVendedor, resumoPagas, variacao } from "../lib/planilha.js";
 import Barra from "./Barra.jsx";
 import Grafico from "./Grafico.jsx";
 
@@ -81,10 +81,18 @@ export default function AbaPagas({ rows, cab, carregado, carregando, onAtualizar
         </div>
       )}
 
-      <section className="summary" aria-live="polite">
+      <section className="summary cinco" aria-live="polite">
         <div className="main"><div className="k">{"Comissão paga (coluna I)"}</div><div className="v" id="pg-total">{brl.format(res.total)}</div></div>
-        <div><div className="k">{"Valor vendido (coluna F)"}</div><div className="v" id="pg-vendas">{brl.format(res.vendas)}</div></div>
+        <div><div className="k">Valor vendido (Vendas com 50% ou mais)</div><div className="v" id="pg-vendas">{brl.format(res.vendas)}</div></div>
         <div><div className="k">Vendas pagas</div><div className="v" id="pg-qtd">{String(res.lista.length)}</div></div>
+        <div>
+          <div className="k">Total das vendas 2026</div>
+          <div className="v" id="pg-total-2026">{formatarCelula(cab && cab.B1 && cab.B1.texto)}</div>
+        </div>
+        <div>
+          <div className="k">Valor recebido</div>
+          <div className="v" id="pg-recebido">{formatarCelula(cab && cab.B2 && cab.B2.texto)}</div>
+        </div>
       </section>
 
       {res.meses.length > 0 && (
