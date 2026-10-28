@@ -76,16 +76,7 @@ export default function AbaPagas({ rows, cab, carregado, carregando, onAtualizar
         )}
       </fieldset>
 
-      {colunasSuspeitas && (
-        <div className="notice">
-          {"Atenção: a coluna F se chama \"" + nomeF + "\" e a coluna I se chama \"" + nomeI + "\". Os totais usam a coluna F como valor vendido e a coluna I como comissão; confira se a ordem das colunas da planilha mudou."}
-        </div>
-      )}
-
-      <section className="summary cinco" aria-live="polite">
-        <div className="main"><div className="k">{"Comissão paga (coluna I)"}</div><div className="v" id="pg-total">{brl.format(res.total)}</div></div>
-        <div><div className="k">Valor vendido (Vendas com 50% ou mais)</div><div className="v" id="pg-vendas">{brl.format(res.vendas)}</div></div>
-        <div><div className="k">Vendas pagas</div><div className="v" id="pg-qtd">{String(res.lista.length)}</div></div>
+      <section className="summary rhino" aria-live="polite">
         <div title={"Soma da coluna F" + (nomeF ? " (" + nomeF + ")" : "") + " da aba Planilha1"}>
           <div className="k">Total vendas 2026 Rhino</div>
           <div className="v" id="pg-total-2026">{brl.format(rhino.vendas)}</div>
@@ -95,6 +86,18 @@ export default function AbaPagas({ rows, cab, carregado, carregando, onAtualizar
           <div className="v" id="pg-recebido">{brl.format(rhino.recebido)}</div>
         </div>
       </section>
+
+      <section className="summary" aria-live="polite">
+        <div className="main"><div className="k">Comissão paga</div><div className="v" id="pg-total">{brl.format(res.total)}</div></div>
+        <div><div className="k">Valor vendido (Vendas com 50% ou mais)</div><div className="v" id="pg-vendas">{brl.format(res.vendas)}</div></div>
+        <div><div className="k">Vendas pagas</div><div className="v" id="pg-qtd">{String(res.lista.length)}</div></div>
+      </section>
+
+      {colunasSuspeitas && (
+        <div className="notice">
+          {"Atenção: a coluna F se chama \"" + nomeF + "\" e a coluna I se chama \"" + nomeI + "\". Os totais usam a coluna F como valor vendido e a coluna I como comissão; confira se a ordem das colunas da planilha mudou."}
+        </div>
+      )}
 
       {res.meses.length > 0 && (
         <>

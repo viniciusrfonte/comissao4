@@ -181,17 +181,9 @@ h2.sec { font-size: 0.95rem; margin: 4px 0 -8px; font-weight: 700; }
 .ch-nome { fill: var(--ink); font-size: 11.5px; }
 .ch-var { fill: var(--muted); font-size: 10.5px; }
 
-/* Resumo da aba "Comissões pagas": 5 cartões */
-.summary.cinco { grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr; }
-.summary.cinco > div { padding: 14px 14px; }
-.summary.cinco .v { font-size: 0.95rem; white-space: nowrap; overflow-wrap: normal; }
-.summary.cinco .main .v { font-size: 1.5rem; }
-.summary .cel { font-size: 0.72rem; color: var(--muted); margin-top: 6px; }
-@media (max-width: 1100px) {
-  .summary.cinco { grid-template-columns: 1fr 1fr; }
-  .summary.cinco > div { padding: 16px 18px; }
-  .summary.cinco .main { grid-column: 1 / -1; }
-  .summary.cinco .v { font-size: 1.15rem; white-space: normal; overflow-wrap: anywhere; }
-  .summary.cinco .main .v { font-size: 1.9rem; }
-}
-@media (max-width: 560px) { .summary.cinco { grid-template-columns: 1fr; } }
+/* Totais da Rhino (linha de cima da aba "Comissões pagas"): negrito e valor 2 vezes maior (1,15rem x 2) */
+.summary.rhino { grid-template-columns: 1fr 1fr; }
+.summary.rhino > div { container-type: inline-size; padding: 18px 20px; }
+.summary.rhino .k { font-size: 0.8rem; font-weight: 700; color: var(--ink); }
+.summary.rhino .v { font-size: clamp(1.3rem, 8cqi, 2.3rem); font-weight: 700; color: var(--ink); white-space: nowrap; overflow-wrap: normal; }
+@media (max-width: 760px) { .summary.rhino { grid-template-columns: 1fr; } }
