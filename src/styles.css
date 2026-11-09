@@ -211,3 +211,5 @@ h2.sec { font-size: 0.95rem; margin: 4px 0 -8px; font-weight: 700; }
 .multi-item { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 8px; border-radius: 6px; cursor: pointer; }
 .multi-item:hover { background: var(--accent-soft); }
 .multi-item input { accent-color: var(--accent); width: 18px; height: 18px; margin: 0; }
+
+td.obs { white-space: normal; min-width: 220px; max-width: 360px; }

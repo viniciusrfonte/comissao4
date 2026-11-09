@@ -1,6 +1,7 @@
 // Regras de negócio da versão original (copiadas sem alteração de comportamento).
 
 export const COL_VENDA = 5;     // coluna F (Valor venda), usada na aba "Comissões pagas"
+export const COL_OBS = 10;      // coluna K (Observações), usada na aba "Comissões Provisionadas"
 export const COL_RECEBIDO = 6;  // coluna G (valor recebido), usada nos totais da Rhino
 export const COL_COMISSAO = 8;  // coluna I (Comissão), usada na aba "Comissões pagas"
 export const LIMITE = 50; // % mínimo do "Percentual da Venda" (arredondado) para a comissão entrar na lista
@@ -83,7 +84,8 @@ export function extrair(matriz) {
       pgtoTxt(r),
       parseMoney(r[COL_VENDA]), parseMoney(r[COL_COMISSAO]),
       parseMoney(r[COL_RECEBIDO]),
-      r[0] == null ? "" : String(r[0]).trim()
+      r[0] == null ? "" : String(r[0]).trim(),
+      r[COL_OBS] == null ? "" : String(r[COL_OBS]).trim()
     ]);
   }
   out.cab = { F: String(matriz[h][COL_VENDA] == null ? "" : matriz[h][COL_VENDA]).trim(), I: String(matriz[h][COL_COMISSAO] == null ? "" : matriz[h][COL_COMISSAO]).trim(), pgto: String(matriz[h][idxPgto] == null ? "" : matriz[h][idxPgto]).trim() };

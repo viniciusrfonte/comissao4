@@ -6,6 +6,7 @@ import ListaMulti from "./ListaMulti.jsx";
 const FAIXAS = [
   { id: "ate49", minimo: null, limite: 49, nome: "Vendas com comissionamento de até 49%" },
   { id: "de30", minimo: 30, limite: 49, nome: "Vendas com pagamento de 30% até 49%" },
+  { id: "ate29", minimo: null, limite: 29, nome: "Vendas com percentual de até 29%" },
 ];
 
 // Aba nova: comissões em aberto de vendas com Percentual da Venda baixo (até 49% ou até 30%).
@@ -72,6 +73,7 @@ export default function AbaProvisionadas({ rows, carregado, carregando, onAtuali
               <th className="num">Percentual</th>
               <th className="num">Comissão</th>
               <th>Mês</th>
+              <th>Observações</th>
             </tr>
           </thead>
           <tbody id="pv-linhas">
@@ -85,6 +87,7 @@ export default function AbaProvisionadas({ rows, carregado, carregando, onAtuali
                 <td className="num">{fmtPct(r[5])}</td>
                 <td className="num">{brl.format(r[6])}</td>
                 <td>{r[12]}</td>
+                <td className="obs">{r[13]}</td>
               </tr>
             ))}
           </tbody>
@@ -92,7 +95,7 @@ export default function AbaProvisionadas({ rows, carregado, carregando, onAtuali
             <tfoot>
               <tr>
                 <td className="name">Total</td><td></td><td></td><td></td><td></td><td></td>
-                <td className="num">{brl.format(res.total)}</td><td></td>
+                <td className="num">{brl.format(res.total)}</td><td></td><td></td>
               </tr>
             </tfoot>
           )}

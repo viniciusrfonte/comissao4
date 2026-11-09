@@ -155,8 +155,8 @@ test("totais da Rhino: soma das colunas F (vendas) e G (recebido) de todas as li
 });
 
 test("provisionadas: até 49% ou até 30%, só em aberto, por vendedor; mês = coluna A", () => {
-  const cabA = ["Mês", "Vendedor", "Nome do Cliente", "Código do Cliente", "% Comissão", "Percentual da Venda", "Valor Venda", "Valor Recebido", "Comissão", "Pgto Comissão"];
-  const ln = (mes, v, c, perc, venda, rec, com, pg) => [mes, v, c, "1", "5%", perc, venda, rec, com, pg];
+  const cabA = ["Mês", "Vendedor", "Nome do Cliente", "Código do Cliente", "% Comissão", "Percentual da Venda", "Valor Venda", "Valor Recebido", "Comissão", "Pgto Comissão", "Observações"];
+  const ln = (mes, v, c, perc, venda, rec, com, pg) => [mes, v, c, "1", "5%", perc, venda, rec, com, pg, "obs " + c];
   const r = extrair([
     cabA,
     ln("Janeiro", "ana", "A", "20%", "R$ 1.000,00", "R$ 200,00", "R$ 50,00", ""),
@@ -166,6 +166,8 @@ test("provisionadas: até 49% ou até 30%, só em aberto, por vendedor; mês = c
     ln("Maio", "bruno", "E", "10%", "R$ 5.000,00", "R$ 500,00", "R$ 250,00", "Maio"),    // já pago: fora
   ]);
   assert.equal(r[0][12], "Janeiro");
+  assert.equal(r[0][13], "obs A");   // coluna K
+  assert.deepEqual(provisionadas(r, 29, ["ANA", "BRUNO"]).lista.map((l) => l[1]), ["A"]);   // até 29%: só 20% (A)
   const a49 = provisionadas(r, 49, ["ANA", "BRUNO"]);
   assert.deepEqual([a49.qtd, a49.total, a49.vendas], [3, 350, 7000]);
   const a30 = provisionadas(r, 49, ["ANA", "BRUNO"], 30);   // de 30% até 49%
