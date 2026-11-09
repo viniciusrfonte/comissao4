@@ -223,12 +223,13 @@ export function variacao(atual, anterior) {
 // ---------- Comissões provisionadas (aba nova) ----------
 
 // Vendas com comissão em aberto (Pgto Comissão vazio) cujo Percentual da Venda, arredondado, é de até `limite`%,
-// para os vendedores informados. Percentual = coluna "Percentual da Venda" (achada pelo título).
-export function provisionadas(rows, limite, vendedores) {
+// (e, se informado, de pelo menos `minimo`%) para os vendedores informados. Percentual = coluna "Percentual da Venda" (achada pelo título).
+export function provisionadas(rows, limite, vendedores, minimo) {
+  var min = minimo == null ? -Infinity : minimo;
   var sel = {};
   vendedores.forEach(function (v) { sel[v] = 1; });
   var lista = rows.filter(function (r) {
-    return r[7] === 0 && sel[r[0]] && Math.round(r[5]) <= limite;
+    return r[7] === 0 && sel[r[0]] && Math.round(r[5]) <= limite && Math.round(r[5]) >= min;
   });
   var total = 0, vendas = 0;
   lista.forEach(function (r) { total += r[6]; vendas += r[4]; });

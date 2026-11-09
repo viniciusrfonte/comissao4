@@ -4,17 +4,18 @@ import Barra from "./Barra.jsx";
 import ListaMulti from "./ListaMulti.jsx";
 
 const FAIXAS = [
-  { limite: 49, nome: "Vendas com comissionamento de até 49%" },
-  { limite: 30, nome: "Vendas com comissionamento de até 30%" },
+  { id: "ate49", minimo: null, limite: 49, nome: "Vendas com comissionamento de até 49%" },
+  { id: "de30", minimo: 30, limite: 49, nome: "Vendas com pagamento de 30% até 49%" },
 ];
 
 // Aba nova: comissões em aberto de vendas com Percentual da Venda baixo (até 49% ou até 30%).
 export default function AbaProvisionadas({ rows, carregado, carregando, onAtualizar }) {
-  const [limite, setLimite] = useState(49);
+  const [faixa, setFaixa] = useState(FAIXAS[0].id);
+  const f = FAIXAS.filter((x) => x.id === faixa)[0];
   const [sel, setSel] = useState(null); // null = todos os vendedores marcados
   const vendedores = useMemo(() => listarVendedores(rows), [rows]);
   const marcados = sel === null ? vendedores : vendedores.filter((v) => sel.indexOf(v) >= 0);
-  const res = useMemo(() => provisionadas(rows, limite, marcados), [rows, limite, marcados]);
+  const res = useMemo(() => provisionadas(rows, f.limite, marcados, f.minimo), [rows, f, marcados]);
 
   function alternar(v) {
     setSel(marcados.indexOf(v) >= 0 ? marcados.filter((x) => x !== v) : marcados.concat([v]));
@@ -44,10 +45,10 @@ export default function AbaProvisionadas({ rows, carregado, carregando, onAtuali
       <fieldset className="chips">
         <legend>Percentual da venda</legend>
         <div className="lista" id="pv-faixas">
-          {FAIXAS.map((f) => (
-            <label className="chip" key={f.limite}>
-              <input type="radio" name="pv-faixa" checked={limite === f.limite} onChange={() => setLimite(f.limite)} />
-              <span>{f.nome}</span>
+          {FAIXAS.map((x) => (
+            <label className="chip" key={x.id}>
+              <input type="radio" name="pv-faixa" checked={faixa === x.id} onChange={() => setFaixa(x.id)} />
+              <span>{x.nome}</span>
             </label>
           ))}
         </div>

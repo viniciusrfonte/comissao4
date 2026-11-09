@@ -168,7 +168,9 @@ test("provisionadas: até 49% ou até 30%, só em aberto, por vendedor; mês = c
   assert.equal(r[0][12], "Janeiro");
   const a49 = provisionadas(r, 49, ["ANA", "BRUNO"]);
   assert.deepEqual([a49.qtd, a49.total, a49.vendas], [3, 350, 7000]);
-  const a30 = provisionadas(r, 30, ["ANA", "BRUNO"]);
-  assert.deepEqual([a30.qtd, a30.total], [2, 250]);
+  const a30 = provisionadas(r, 49, ["ANA", "BRUNO"], 30);   // de 30% até 49%
+  assert.deepEqual([a30.qtd, a30.total, a30.vendas], [2, 300, 6000]);
+  assert.deepEqual(a30.lista.map((l) => l[1]), ["B", "D"]);   // 20% (A) fica fora; 30% (D) e 45% (B) entram
+  assert.equal(provisionadas(r, 49, ["ANA", "BRUNO"], 46).qtd, 0);
   assert.deepEqual([provisionadas(r, 49, ["ANA"]).qtd, provisionadas(r, 49, []).qtd], [2, 0]);
 });
