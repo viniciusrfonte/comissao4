@@ -3,8 +3,9 @@ import { extrair, origemTexto } from "./lib/planilha.js";
 import { buscarPlanilha, gravarSenha, lerSenha, msgErro } from "./lib/api.js";
 import AbaAbertas from "./components/AbaAbertas.jsx";
 import AbaPagas from "./components/AbaPagas.jsx";
+import AbaProvisionadas from "./components/AbaProvisionadas.jsx";
 
-const STORE = "comissoes-planilha-v5";
+const STORE = "comissoes-planilha-v6";
 
 function lerCache() {
   try {
@@ -17,7 +18,7 @@ function gravarCache(rows, origem, cab) {
   try { localStorage.setItem(STORE, JSON.stringify({ rows: rows, origem: origem, cab: cab })); } catch (e) {}
 }
 function limparCache() {
-  try { localStorage.removeItem(STORE); localStorage.removeItem("comissoes-planilha-v4"); localStorage.removeItem("comissoes-planilha-v3"); localStorage.removeItem("comissoes-planilha-v2"); } catch (e) {}
+  try { localStorage.removeItem(STORE); localStorage.removeItem("comissoes-planilha-v5"); localStorage.removeItem("comissoes-planilha-v4"); localStorage.removeItem("comissoes-planilha-v3"); localStorage.removeItem("comissoes-planilha-v2"); } catch (e) {}
 }
 
 function Topo() {
@@ -59,6 +60,7 @@ function Acesso({ onEntrar, erro }) {
 const ABAS = [
   { id: "abertas", nome: "Comissões em aberto" },
   { id: "pagas", nome: "Comissões pagas" },
+  { id: "provisionadas", nome: "Comissões Provisionadas" },
 ];
 
 export default function App() {
@@ -147,9 +149,9 @@ export default function App() {
         {aviso && <div className="notice" id="aviso">{aviso}</div>}
 
         <div className="painel" role="tabpanel" id={"painel-" + aba} aria-labelledby={"aba-" + aba}>
-          {aba === "abertas"
-            ? <AbaAbertas rows={rows} carregado={carregado} carregando={carregando} onAtualizar={atualizar} />
-            : <AbaPagas rows={rows} cab={cab} carregado={carregado} carregando={carregando} onAtualizar={atualizar} />}
+          {aba === "abertas" && <AbaAbertas rows={rows} carregado={carregado} carregando={carregando} onAtualizar={atualizar} />}
+          {aba === "pagas" && <AbaPagas rows={rows} cab={cab} carregado={carregado} carregando={carregando} onAtualizar={atualizar} />}
+          {aba === "provisionadas" && <AbaProvisionadas rows={rows} carregado={carregado} carregando={carregando} onAtualizar={atualizar} />}
         </div>
 
         <p className="foot" id="origem">{aba === "abertas" ? origem : origem.split(" Regra:")[0]}</p>

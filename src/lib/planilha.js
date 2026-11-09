@@ -49,7 +49,7 @@ export function parseCSV(text) {
 
 // Localiza as colunas pelo nome do cabeçalho.
 // Cada registro: [vendedor, cliente, código, %comissão, venda, %venda, comissão, pago(0/1), texto do pagamento,
-// valor da coluna F, valor da coluna I, valor da coluna G]. As colunas F, G e I são lidas por posição.
+// valor da coluna F, valor da coluna I, valor da coluna G, texto da coluna A (mês)]. As colunas F, G e I são lidas por posição.
 export function extrair(matriz) {
   var h = -1, idx = {}, i, j;
   for (i = 0; i < matriz.length && h < 0; i++) {
@@ -82,7 +82,8 @@ export function extrair(matriz) {
       txt(r, "PGTO COMISSAO") === "" ? 0 : 1,
       pgtoTxt(r),
       parseMoney(r[COL_VENDA]), parseMoney(r[COL_COMISSAO]),
-      parseMoney(r[COL_RECEBIDO])
+      parseMoney(r[COL_RECEBIDO]),
+      r[0] == null ? "" : String(r[0]).trim()
     ]);
   }
   out.cab = { F: String(matriz[h][COL_VENDA] == null ? "" : matriz[h][COL_VENDA]).trim(), I: String(matriz[h][COL_COMISSAO] == null ? "" : matriz[h][COL_COMISSAO]).trim(), pgto: String(matriz[h][idxPgto] == null ? "" : matriz[h][idxPgto]).trim() };
@@ -217,4 +218,19 @@ export function porVendedor(lista) {
 // Variação percentual entre dois valores (null quando não há base de comparação).
 export function variacao(atual, anterior) {
   return anterior ? ((atual - anterior) / anterior) * 100 : null;
+}
+
+// ---------- Comissões provisionadas (aba nova) ----------
+
+// Vendas com comissão em aberto (Pgto Comissão vazio) cujo Percentual da Venda, arredondado, é de até `limite`%,
+// para os vendedores informados. Percentual = coluna "Percentual da Venda" (achada pelo título).
+export function provisionadas(rows, limite, vendedores) {
+  var sel = {};
+  vendedores.forEach(function (v) { sel[v] = 1; });
+  var lista = rows.filter(function (r) {
+    return r[7] === 0 && sel[r[0]] && Math.round(r[5]) <= limite;
+  });
+  var total = 0, vendas = 0;
+  lista.forEach(function (r) { total += r[6]; vendas += r[4]; });
+  return { lista: lista, total: total, vendas: vendas, qtd: lista.length };
 }

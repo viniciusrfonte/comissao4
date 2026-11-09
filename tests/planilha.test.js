@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { extrair, filtrar, listarVendedores, parseMoney, parsePct, norm, fmtPct, chaveMes, opcoesPagamento, pagasDoVendedor, resumoPagas, TODOS, variacao, totaisRhino } from "../src/lib/planilha.js";
+import { extrair, filtrar, listarVendedores, parseMoney, parsePct, norm, fmtPct, chaveMes, opcoesPagamento, pagasDoVendedor, resumoPagas, TODOS, variacao, totaisRhino, provisionadas } from "../src/lib/planilha.js";
 
 const cab = ["Vendedor", "Nome do Cliente", "Código do Cliente", "% Comissão", "Valor Venda", "Percentual da Venda", "Comissão", "Pgto Comissão"];
 const matriz = [
@@ -152,4 +152,23 @@ test("totais da Rhino: soma das colunas F (vendas) e G (recebido) de todas as li
   assert.equal(t.vendas, 6500.5);
   assert.equal(t.recebido, 1900);
   assert.deepEqual(totaisRhino([]), { vendas: 0, recebido: 0 });
+});
+
+test("provisionadas: até 49% ou até 30%, só em aberto, por vendedor; mês = coluna A", () => {
+  const cabA = ["Mês", "Vendedor", "Nome do Cliente", "Código do Cliente", "% Comissão", "Percentual da Venda", "Valor Venda", "Valor Recebido", "Comissão", "Pgto Comissão"];
+  const ln = (mes, v, c, perc, venda, rec, com, pg) => [mes, v, c, "1", "5%", perc, venda, rec, com, pg];
+  const r = extrair([
+    cabA,
+    ln("Janeiro", "ana", "A", "20%", "R$ 1.000,00", "R$ 200,00", "R$ 50,00", ""),
+    ln("Fevereiro", "ana", "B", "45%", "R$ 2.000,00", "R$ 900,00", "R$ 100,00", ""),
+    ln("Março", "ana", "C", "49,6%", "R$ 3.000,00", "R$ 1.500,00", "R$ 150,00", ""),   // arredonda para 50: fora
+    ln("Abril", "bruno", "D", "30%", "R$ 4.000,00", "R$ 1.200,00", "R$ 200,00", ""),
+    ln("Maio", "bruno", "E", "10%", "R$ 5.000,00", "R$ 500,00", "R$ 250,00", "Maio"),    // já pago: fora
+  ]);
+  assert.equal(r[0][12], "Janeiro");
+  const a49 = provisionadas(r, 49, ["ANA", "BRUNO"]);
+  assert.deepEqual([a49.qtd, a49.total, a49.vendas], [3, 350, 7000]);
+  const a30 = provisionadas(r, 30, ["ANA", "BRUNO"]);
+  assert.deepEqual([a30.qtd, a30.total], [2, 250]);
+  assert.deepEqual([provisionadas(r, 49, ["ANA"]).qtd, provisionadas(r, 49, []).qtd], [2, 0]);
 });
