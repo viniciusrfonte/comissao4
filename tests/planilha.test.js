@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { extrair, filtrar, listarVendedores, parseMoney, parsePct, norm, fmtPct, chaveMes, opcoesPagamento, pagasDoVendedor, resumoPagas, TODOS, variacao, totaisRhino, provisionadas } from "../src/lib/planilha.js";
+import { extrair, filtrar, listarVendedores, parseMoney, parsePct, norm, fmtPct, chaveMes, opcoesPagamento, pagasDoVendedor, resumoPagas, TODOS, variacao, totaisRhino, provisionadas, COLUNAS_PROV, valoresColuna, filtrarColunas, totaisLista } from "../src/lib/planilha.js";
 
 const cab = ["Vendedor", "Nome do Cliente", "Código do Cliente", "% Comissão", "Valor Venda", "Percentual da Venda", "Comissão", "Pgto Comissão"];
 const matriz = [
@@ -175,4 +175,25 @@ test("provisionadas: até 49% ou até 30%, só em aberto, por vendedor; mês = c
   assert.deepEqual(a30.lista.map((l) => l[1]), ["B", "D"]);   // 20% (A) fica fora; 30% (D) e 45% (B) entram
   assert.equal(provisionadas(r, 49, ["ANA", "BRUNO"], 46).qtd, 0);
   assert.deepEqual([provisionadas(r, 49, ["ANA"]).qtd, provisionadas(r, 49, []).qtd], [2, 0]);
+});
+
+test("filtros por coluna (estilo Excel) e total da comissão", () => {
+  const cabA = ["Mês", "Vendedor", "Nome do Cliente", "Código do Cliente", "% Comissão", "Percentual da Venda", "Valor Venda", "Valor Recebido", "Comissão", "Pgto Comissão", "Observações"];
+  const ln = (mes, v, c, perc, venda, com, obs) => [mes, v, c, "1", "5%", perc, venda, "R$ 0,00", com, "", obs];
+  const r = extrair([cabA,
+    ln("Janeiro", "ana", "A", "20%", "R$ 1.000,00", "R$ 50,00", "urgente"),
+    ln("Fevereiro", "ana", "B", "45%", "R$ 2.000,00", "R$ 100,00", ""),
+    ln("Janeiro", "bruno", "C", "20%", "R$ 3.000,00", "R$ 150,00", "urgente")]);
+  const base = provisionadas(r, 49, ["ANA", "BRUNO"]).lista;
+  const col = (k) => COLUNAS_PROV.filter((c) => c.k === k)[0];
+  assert.deepEqual(valoresColuna(base, col("mes")), ["Fevereiro", "Janeiro"]);
+  assert.deepEqual(valoresColuna(base, col("perc")), ["20%", "45%"]);
+  assert.deepEqual(valoresColuna(base, col("obs")), ["urgente", ""]);   // vazio por último
+  assert.equal(valoresColuna(base, col("com")).length, 3);
+  assert.equal(filtrarColunas(base, {}).length, 3);
+  assert.equal(totaisLista(filtrarColunas(base, { mes: ["Janeiro"] })).total, 200);
+  assert.equal(totaisLista(filtrarColunas(base, { mes: ["Janeiro"], vend: ["ANA"] })).total, 50);   // filtros se combinam
+  assert.equal(filtrarColunas(base, { obs: [""] }).length, 1);
+  assert.equal(filtrarColunas(base, { mes: [] }).length, 0);
+  assert.equal(totaisLista(base).vendas, 6000);
 });

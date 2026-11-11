@@ -237,3 +237,49 @@ export function provisionadas(rows, limite, vendedores, minimo) {
   lista.forEach(function (r) { total += r[6]; vendas += r[4]; });
   return { lista: lista, total: total, vendas: vendas, qtd: lista.length };
 }
+
+// ---------- Filtros por coluna (estilo Excel) da aba "Comissões Provisionadas" ----------
+
+// Colunas da tabela: k = chave, get = texto exibido (também é o valor listado no filtro), raw = valor numérico p/ ordenar.
+export const COLUNAS_PROV = [
+  { k: "cod", rot: "Código cliente", get: function (r) { return String(r[2]); }, cls: "code" },
+  { k: "nome", rot: "Nome do cliente", get: function (r) { return String(r[1]); }, cls: "name" },
+  { k: "vend", rot: "Vendedor", get: function (r) { return String(r[0]); } },
+  { k: "venda", rot: "Valor da venda", get: function (r) { return brl.format(r[4]); }, raw: function (r) { return r[4]; }, num: true },
+  { k: "pago", rot: "Valor pago", get: function (r) { return brl.format(r[11]); }, raw: function (r) { return r[11]; }, num: true },
+  { k: "perc", rot: "Percentual", get: function (r) { return fmtPct(r[5]); }, raw: function (r) { return r[5]; }, num: true },
+  { k: "com", rot: "Comissão", get: function (r) { return brl.format(r[6]); }, raw: function (r) { return r[6]; }, num: true },
+  { k: "mes", rot: "Mês", get: function (r) { return String(r[12] || ""); } },
+  { k: "obs", rot: "Observações", get: function (r) { return String(r[13] || ""); }, cls: "obs" }
+];
+
+// Valores distintos de uma coluna (para a lista do filtro), em ordem numérica ou alfabética.
+export function valoresColuna(lista, col) {
+  var vistos = {}, itens = [];
+  lista.forEach(function (r) {
+    var t = col.get(r);
+    if (!(t in vistos)) { vistos[t] = 1; itens.push({ txt: t, raw: col.raw ? col.raw(r) : 0 }); }
+  });
+  itens.sort(function (a, b) {
+    if (col.num) return a.raw - b.raw;
+    if (a.txt === "") return 1;
+    if (b.txt === "") return -1;
+    return a.txt.localeCompare(b.txt, "pt-BR", { numeric: true });
+  });
+  return itens.map(function (i) { return i.txt; });
+}
+
+// filtros = { chaveDaColuna: [textos marcados] }; coluna ausente (ou null) = sem filtro.
+export function filtrarColunas(lista, filtros) {
+  var ativos = COLUNAS_PROV.filter(function (c) { return Array.isArray(filtros[c.k]); });
+  if (!ativos.length) return lista;
+  var sets = {};
+  ativos.forEach(function (c) { var m = {}; filtros[c.k].forEach(function (t) { m[t] = 1; }); sets[c.k] = m; });
+  return lista.filter(function (r) { return ativos.every(function (c) { return sets[c.k][c.get(r)]; }); });
+}
+
+export function totaisLista(lista) {
+  var total = 0, vendas = 0;
+  lista.forEach(function (r) { total += r[6]; vendas += r[4]; });
+  return { total: total, vendas: vendas, qtd: lista.length };
+}
